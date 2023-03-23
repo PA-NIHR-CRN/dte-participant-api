@@ -1,3 +1,5 @@
+using System;
+
 namespace ParticipantApi.Requests.Participants
 {
     public class CreateParticipantDetailsRequest
@@ -8,5 +10,7 @@ namespace ParticipantApi.Requests.Participants
         public string Lastname { get; set; }
         public bool ConsentRegistration { get; set; }
         public string NhsId { get; set; }
+        public string NhsNumber { get; set; }
+        public DateTime? DateOfBirth { get; set; }
     }
 }

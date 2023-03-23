@@ -30,12 +30,7 @@ namespace Application.Participants.V1.Queries.Participants
             {
                 var participantDetails = await _participantRepository.GetParticipantDetailsByEmailAsync(request.Email);
 
-                if (participantDetails == null)
-                {
-                    throw new NotFoundException($"No participant details found for email: {request.Email}");
-                }
-
-                return ParticipantMapper.MapTo(participantDetails);
+                return participantDetails == null ? null : ParticipantMapper.MapTo(participantDetails);
             }
         }
     }

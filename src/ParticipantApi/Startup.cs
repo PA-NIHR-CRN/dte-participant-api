@@ -45,9 +45,12 @@ namespace ParticipantApi
             if (awsSettings == null) throw new Exception("Could not bind the aws settings, please check configuration");
             var authenticationSettings = Configuration.GetSection(AuthenticationSettings.SectionName).Get<AuthenticationSettings>();
             if (authenticationSettings == null) throw new Exception("Could not bind the authentication settings, please check configuration");
+            var emailSettings = Configuration.GetSection(EmailSettings.SectionName).Get<EmailSettings>();
+            if (emailSettings == null) throw new Exception("Could not bind the email settings, please check configuration");
 
             services.AddSingleton(awsSettings);
             services.AddSingleton(authenticationSettings);
+            services.AddSingleton(emailSettings);
 
             services.AddApiVersioning(opts =>
             {

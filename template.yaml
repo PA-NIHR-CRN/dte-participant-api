@@ -13,7 +13,7 @@ Resources:
     Properties:
       CodeUri: ./src/ParticipantApi/
       Handler: ParticipantApi::ParticipantApi.Function::FunctionHandlerAsync
-      Runtime: dotnetcore3.1
+      Runtime: net6.0
       Role: arn:aws:iam::536374685097:role/nihr-dte-dev-eu-west-2-lambdaRole
       MemorySize: 256
       Environment:

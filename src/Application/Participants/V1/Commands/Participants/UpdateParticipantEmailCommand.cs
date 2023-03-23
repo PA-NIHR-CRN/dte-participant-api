@@ -38,7 +38,7 @@ namespace Application.Participants.V1.Commands.Participants
                     throw new NotFoundException($"Participant not found, Id: {request.ParticipantId}");
                 }
 
-                entity.Email = request.Email;
+                entity.Email = request.Email.ToLower();
                 entity.UpdatedAtUtc = _clock.Now();
 
                 await _participantRepository.UpdateParticipantDetailsAsync(entity);

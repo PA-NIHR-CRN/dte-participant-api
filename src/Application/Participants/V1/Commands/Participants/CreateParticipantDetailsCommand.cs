@@ -16,8 +16,11 @@ namespace Application.Participants.V1.Commands.Participants
         public string Lastname { get; }
         public bool ConsentRegistration { get; }
         public string NhsId { get; }
+        public string NhsNumber { get; }
+        public DateTime? DateOfBirth { get; set; }
 
-        public CreateParticipantDetailsCommand(string participantId, string email, string firstname, string lastname, bool consentRegistration, string nhsId)
+        public CreateParticipantDetailsCommand(string participantId, string email, string firstname, string lastname,
+            bool consentRegistration, string nhsId, DateTime? dateOfBirth, string nhsNumber)
         {
             ParticipantId = participantId;
             Email = email;
@@ -25,8 +28,10 @@ namespace Application.Participants.V1.Commands.Participants
             Lastname = lastname;
             ConsentRegistration = consentRegistration;
             NhsId = nhsId;
+            NhsNumber = nhsNumber;
+            DateOfBirth = dateOfBirth;
         }
-        
+
         public class CreateParticipantDetailsCommandHandler : IRequestHandler<CreateParticipantDetailsCommand>
         {
             private readonly IParticipantRepository _participantRepository;
@@ -37,24 +42,26 @@ namespace Application.Participants.V1.Commands.Participants
                 _participantRepository = participantRepository;
                 _clock = clock;
             }
-            
+
             public async Task<Unit> Handle(CreateParticipantDetailsCommand request, CancellationToken cancellationToken)
             {
                 var entity = new ParticipantDetails
                 {
                     NhsId = request.NhsId,
+                    NhsNumber = request.NhsNumber,
                     ParticipantId = request.ParticipantId,
-                    Email = request.Email,
+                    Email = request.Email.ToLower(),
                     Firstname = request.Firstname,
                     Lastname = request.Lastname,
                     ConsentRegistration = request.ConsentRegistration,
-                    ConsentRegistrationAtUtc = request.ConsentRegistration ? _clock.Now() : (DateTime?) null,
+                    DateOfBirth = request.DateOfBirth,
+                    ConsentRegistrationAtUtc = request.ConsentRegistration ? _clock.Now() : (DateTime?)null,
                     RemovalOfConsentRegistrationAtUtc = (DateTime?)null,
                     CreatedAtUtc = _clock.Now(),
                 };
 
                 await _participantRepository.CreateParticipantDetailsAsync(entity);
-                
+
                 return Unit.Value;
             }
         }

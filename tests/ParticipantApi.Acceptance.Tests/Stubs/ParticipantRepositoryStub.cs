@@ -68,6 +68,13 @@ namespace ParticipantApi.Acceptance.Tests.Stubs
             await Task.CompletedTask;
         }
 
+        public Task AddDemographicsToNhsUserAsync(ParticipantDemographics entity, string nhsId)
+        {
+            _participantDemographics.Add(entity);
+            
+            return Task.CompletedTask;
+        }
+
         public async Task UpdateParticipantDemographicsAsync(ParticipantDemographics entity)
         {
             var item = _participantDemographics.FirstOrDefault(x => x.ParticipantId == entity.ParticipantId);
@@ -82,6 +89,13 @@ namespace ParticipantApi.Acceptance.Tests.Stubs
             _participantDemographics = myBag; // TODO - check if this works
 
             await Task.CompletedTask;
+        }
+        
+        public async Task<ParticipantDetails> GetParticipantDetailsByNhsNumberAsync(string nhsNumber)
+        {
+            var detail = _participantDetails.FirstOrDefault(x => x.NhsNumber == nhsNumber);
+
+            return await Task.FromResult(detail);
         }
     }
 }
