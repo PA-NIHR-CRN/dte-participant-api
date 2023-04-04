@@ -41,15 +41,11 @@ namespace Infrastructure.Persistence
                 _config);
         }
 
-        public async Task<ParticipantDetails> GetParticipantDetailsByEmailAsync(string email)
+        private async Task<ParticipantDetails> GetParticipantDetailsByFilterAsync(
+            string dbCol,
+            string filterKey,
+            AttributeValue filterValue)
         {
-            if (string.IsNullOrEmpty(email))
-            {
-                return null;
-            }
-
-            email = email.ToLowerInvariant();
-
             var items = new List<Dictionary<string, AttributeValue>>();
 
             var scanRequestCount = 1;
@@ -59,16 +55,16 @@ namespace Infrastructure.Persistence
                 var request = new ScanRequest
                 {
                     TableName = _config.OverrideTableName,
-                    FilterExpression = "#email = :email",
+                    FilterExpression = $"{filterKey} = :{filterKey}",
                     ExpressionAttributeNames = new Dictionary<string, string>
                     {
                         {
-                            "#email", "Email"
+                            $"#{filterKey}", dbCol
                         }
                     },
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                     {
-                        { ":email", new AttributeValue { S = email } }
+                        { $":{filterKey}", filterValue }
                     },
                     ConsistentRead = true,
                     ExclusiveStartKey = lastKeyEvaluated,
@@ -88,8 +84,7 @@ namespace Infrastructure.Persistence
 
                 scanRequestCount++;
             } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
-
-
+            
             _logger.LogInformation("items: {items}", JsonConvert.SerializeObject(items, Formatting.Indented));
 
             if (items.Count == 0)
@@ -133,81 +128,25 @@ namespace Infrastructure.Persistence
             return participantDetails;
         }
 
+        public async Task<ParticipantDetails> GetParticipantDetailsByEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email)) return null;
+
+            email = email.ToLowerInvariant();
+
+            var participantDetails = await GetParticipantDetailsByFilterAsync("Email", "email", new AttributeValue { S = email });
+
+            return participantDetails;
+        }
+
         public async Task<ParticipantDetails> GetParticipantDetailsByNhsNumberAsync(string nhsNumber)
         {
             if (string.IsNullOrEmpty(nhsNumber))
             {
                 return null;
             }
-
-            var items = new List<Dictionary<string, AttributeValue>>();
-
-            var scanRequestCount = 1;
-            Dictionary<string, AttributeValue> lastKeyEvaluated = null;
-            do
-            {
-                var request = new ScanRequest
-                {
-                    TableName = _config.OverrideTableName,
-                    FilterExpression = "#nhsNumber = :nhsNumber",
-                    ExpressionAttributeNames = new Dictionary<string, string>
-                    {
-                        {
-                            "#nhsNumber", "NhsNumber"
-                        }
-                    },
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                    {
-                        { ":nhsNumber", new AttributeValue { S = nhsNumber } }
-                    },
-                    ConsistentRead = true,
-                    ExclusiveStartKey = lastKeyEvaluated,
-                };
-
-                _logger.LogInformation("request {scanRequestCount}: {request}", scanRequestCount,
-                    JsonConvert.SerializeObject(request, Formatting.Indented));
-
-                var response = await _client.ScanAsync(request);
-
-                _logger.LogInformation("response {scanRequestCount}: {response}", scanRequestCount,
-                    JsonConvert.SerializeObject(response, Formatting.Indented));
-
-                lastKeyEvaluated = response.LastEvaluatedKey;
-
-                items.AddRange(response.Items);
-
-                scanRequestCount++;
-            } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
-
-
-            _logger.LogInformation("items: {items}", JsonConvert.SerializeObject(items, Formatting.Indented));
-
-            if (items.Count == 0)
-            {
-                return null;
-            }
-
-            var item = items.OrderByDescending(x => DateTime.Parse(x["CreatedAtUtc"].S)).First();
-
-            // make item dictionary to an object
-            var participantDetails = new ParticipantDetails
-            {
-                Pk = item["PK"].S,
-                Sk = item["SK"].S,
-                Email = item["Email"].S,
-                Firstname = item["Firstname"].S,
-                Lastname = item["Lastname"].S,
-                ConsentRegistration = Convert.ToBoolean(Convert.ToInt16(item["ConsentRegistration"].N)),
-                DateOfBirth = DateTime.Parse(item["DateOfBirth"].S),
-                NhsNumber = item["NhsNumber"].S,
-            };
-
-            if (item.TryGetValue("ParticipantId", out var participantId))
-            {
-                participantDetails.ParticipantId = participantId.S;
-            }
-
-
+            var participantDetails = await GetParticipantDetailsByFilterAsync("NhsNumber", "nhsNumber", new AttributeValue { S = nhsNumber });
+            
             _logger.LogInformation("participantDetails: {participantDetails}",
                 JsonConvert.SerializeObject(participantDetails));
 
