@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <OutputType>Exe</OutputType>
     <UserSecretsId>112fae45-f946-48f7-96bb-04b405c6cfda</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DocumentationFile>bin\Debug\netcoreapp3.1\ParticipantApi.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\net6.0\ParticipantApi.xml</DocumentationFile>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DocumentationFile>bin\Release\netcoreapp3.1\ParticipantApi.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\net6.0\ParticipantApi.xml</DocumentationFile>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="2.0.0" />
     <PackageReference Include="AWSSDK.Core" Version="3.7.6.4" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.2.2" />
-    <PackageReference Include="Dte.Common" Version="1.4.0" />
+    <PackageReference Include="Dte.Common" Version="1.6.0" />
     <PackageReference Include="Dte.Common.Lambda" Version="1.1.3" />
     <PackageReference Include="FluentValidation" Version="10.3.6" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.6" />

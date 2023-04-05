@@ -48,7 +48,7 @@ namespace ParticipantApi.Controllers.V1
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ParticipantDetailsResponse))]
         [SwaggerResponse(StatusCodes.Status404NotFound, Type = null)]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, Type = null)]
-        [HttpGet("{participantId}/detailsbyemail")]
+        [HttpGet("{email}/detailsbyemail")]
         public async Task<IActionResult> GetParticipantDetailsByEmail(string email)
         {
             return Ok(await _mediator.Send(new GetParticipantDetailsByEmailQuery(email)));
@@ -71,7 +71,9 @@ namespace ParticipantApi.Controllers.V1
                 request.Firstname,
                 request.Lastname,
                 request.ConsentRegistration,
-                request.NhsId
+                request.NhsId,
+                request.DateOfBirth,
+                request.NhsNumber
             );
 
             await _mediator.Send(command);
@@ -140,7 +142,6 @@ namespace ParticipantApi.Controllers.V1
                 request.MobileNumber,
                 request.LandlineNumber,
                 ParticipantRequestMapper.MapTo(request.Address),
-                request.DateOfBirth,
                 request.SexRegisteredAtBirth,
                 request.GenderIsSameAsSexRegisteredAtBirth,
                 request.EthnicGroup,
@@ -176,14 +177,14 @@ namespace ParticipantApi.Controllers.V1
                 request.MobileNumber,
                 request.LandlineNumber,
                 ParticipantRequestMapper.MapTo(request.Address),
-                request.DateOfBirth,
                 request.SexRegisteredAtBirth,
                 request.GenderIsSameAsSexRegisteredAtBirth,
                 request.EthnicGroup,
                 request.EthnicBackground,
                 request.Disability,
                 request.DisabilityDescription,
-                request.HealthConditionInterests
+                request.HealthConditionInterests,
+                request.DateOfBirth
             );
 
             await _mediator.Send(command);

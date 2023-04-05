@@ -18,7 +18,6 @@ namespace Application.Participants.V1.Commands.Participants
         public string MobileNumber { get; }
         public string LandlineNumber { get; }
         public ParticipantAddressModel Address { get; }
-        public DateTime DateOfBirth { get; }
         public string SexRegisteredAtBirth { get; }
         public bool? GenderIsSameAsSexRegisteredAtBirth { get; }
         public string EthnicGroup { get; }
@@ -31,7 +30,6 @@ namespace Application.Participants.V1.Commands.Participants
             string mobileNumber,
             string landlineNumber,
             ParticipantAddressModel address,
-            DateTime dateOfBirth,
             string sexRegisteredAtBirth,
             bool? genderIsSameAsSexRegisteredAtBirth,
             string ethnicGroup,
@@ -44,7 +42,6 @@ namespace Application.Participants.V1.Commands.Participants
             MobileNumber = mobileNumber;
             LandlineNumber = landlineNumber;
             Address = address;
-            DateOfBirth = dateOfBirth;
             SexRegisteredAtBirth = sexRegisteredAtBirth;
             GenderIsSameAsSexRegisteredAtBirth = genderIsSameAsSexRegisteredAtBirth;
             EthnicGroup = ethnicGroup;
@@ -67,27 +64,46 @@ namespace Application.Participants.V1.Commands.Participants
             
             public async Task<Unit> Handle(CreateParticipantDemographicsCommand request, CancellationToken cancellationToken)
             {
-                var entity = new ParticipantDemographics
+                var updateExisting = false;
+
+                var entity = await _participantRepository.GetParticipantDemographicsAsync(request.ParticipantId);
+
+                if (entity == null)
                 {
-                    ParticipantId = request.ParticipantId,
-                    MobileNumber = request.MobileNumber,
-                    LandlineNumber = request.LandlineNumber,
-                    DateOfBirth = request.DateOfBirth,
-                    SexRegisteredAtBirth = request.SexRegisteredAtBirth,
-                    GenderIsSameAsSexRegisteredAtBirth = request.GenderIsSameAsSexRegisteredAtBirth,
-                    EthnicGroup = request.EthnicGroup,
-                    EthnicBackground = request.EthnicBackground,
-                    Disability = request.Disability,
-                    DisabilityDescription = request.DisabilityDescription,
-                    HealthConditionInterests = request.HealthConditionInterests?.ToList()
-                };
-                
+                    entity = new ParticipantDemographics
+                    {
+                        ParticipantId = request.ParticipantId,
+                    };
+                    updateExisting = false;
+                }
+                else
+                {
+                    updateExisting = true;
+                }
+
+                entity.MobileNumber = request.MobileNumber;
+                entity.LandlineNumber = request.LandlineNumber;
+                entity.SexRegisteredAtBirth = request.SexRegisteredAtBirth;
+                entity.GenderIsSameAsSexRegisteredAtBirth = request.GenderIsSameAsSexRegisteredAtBirth;
+                entity.EthnicGroup = request.EthnicGroup;
+                entity.EthnicBackground = request.EthnicBackground;
+                entity.Disability = request.Disability;
+                entity.DisabilityDescription = request.DisabilityDescription;
+                entity.HealthConditionInterests = request.HealthConditionInterests?.ToList();
+
                 if (request.Address != null)
                 {
                     entity.Address = ParticipantAddressMapper.MapTo(request.Address);
                 }
 
-                await _participantRepository.CreateParticipantDemographicsAsync(entity);
+                if (updateExisting)
+                {
+                    await _participantRepository.UpdateParticipantDemographicsAsync(entity);
+                }
+                else
+                {
+                    await _participantRepository.CreateParticipantDemographicsAsync(entity);
+                }
                 
                 return Unit.Value;
             }

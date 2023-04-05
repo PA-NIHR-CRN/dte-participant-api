@@ -28,7 +28,6 @@ namespace Application.Mappings.Participants
                 MobileNumber = source.MobileNumber,
                 LandlineNumber = source.LandlineNumber,
                 Address = ParticipantAddressMapper.MapTo(source.Address),
-                DateOfBirth = source.DateOfBirth,
                 SexRegisteredAtBirth = source.SexRegisteredAtBirth,
                 GenderIsSameAsSexRegisteredAtBirth = source.GenderIsSameAsSexRegisteredAtBirth,
                 EthnicGroup = source.EthnicGroup,
@@ -36,7 +35,8 @@ namespace Application.Mappings.Participants
                 Disability = source.Disability,
                 DisabilityDescription = source.DisabilityDescription,
                 HealthConditionInterests = source.HealthConditionInterests,
-                HasDemographics = source.HasDemographics
+                HasDemographics = source.HasDemographics,
+                DateOfBirth = source.DateOfBirth,
             };
         }
     }

@@ -14,6 +14,7 @@ namespace Domain.Entities.Participants
         [DynamoDBProperty] public string Firstname { get; set; }
         [DynamoDBProperty] public string Lastname { get; set; }
         [DynamoDBProperty] public string NhsId { get; set; }
+        [DynamoDBProperty] public string NhsNumber { get; set; }
         [DynamoDBProperty] public bool ConsentRegistration { get; set; }
         [DynamoDBProperty] public DateTime? DateOfBirth { get; set; }
         [DynamoDBProperty(typeof(DateTimeUtcConverter))] public DateTime? ConsentRegistrationAtUtc { get; set; }

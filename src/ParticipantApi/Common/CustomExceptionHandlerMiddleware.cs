@@ -83,6 +83,7 @@ namespace ParticipantApi.Common
             else
             {
                 _logger.LogError(ex, result);
+                _logger.LogError(ex.StackTrace);
             }
             
             return context.Response.WriteAsync(result);

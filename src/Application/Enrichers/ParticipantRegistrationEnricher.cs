@@ -53,7 +53,6 @@ namespace Application.Enrichers
                 source.MobileNumber = participantDemographics.MobileNumber;
                 source.Lastname = participantDemographics.LandlineNumber;
                 source.Address = participantDemographics.Address;
-                source.DateOfBirth = participantDemographics.DateOfBirth;
                 source.SexRegisteredAtBirth = participantDemographics.SexRegisteredAtBirth;
                 source.GenderIsSameAsSexRegisteredAtBirth = participantDemographics.GenderIsSameAsSexRegisteredAtBirth;
                 source.EthnicGroup = participantDemographics.EthnicGroup;
