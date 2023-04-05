@@ -54,7 +54,7 @@ namespace Infrastructure.Persistence
                 var request = new ScanRequest
                 {
                     TableName = _config.OverrideTableName,
-                    FilterExpression = $"{dbCol} = :{dbCol}",
+                    FilterExpression = $"#{dbCol} = :{dbCol}",
                     ExpressionAttributeNames = new Dictionary<string, string>
                     {
                         {
