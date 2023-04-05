@@ -41,9 +41,8 @@ namespace Infrastructure.Persistence
                 _config);
         }
 
-        private async Task<ParticipantDetails> GetParticipantDetailsByFilterAsync(
+        private async Task<ParticipantDetails> ScanForParticipantDetailsWithFilterAsync(
             string dbCol,
-            string filterKey,
             AttributeValue filterValue)
         {
             var items = new List<Dictionary<string, AttributeValue>>();
@@ -55,16 +54,16 @@ namespace Infrastructure.Persistence
                 var request = new ScanRequest
                 {
                     TableName = _config.OverrideTableName,
-                    FilterExpression = $"{filterKey} = :{filterKey}",
+                    FilterExpression = $"{dbCol} = :{dbCol}",
                     ExpressionAttributeNames = new Dictionary<string, string>
                     {
                         {
-                            $"#{filterKey}", dbCol
+                            $"#{dbCol}", dbCol
                         }
                     },
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                     {
-                        { $":{filterKey}", filterValue }
+                        { $":{dbCol}", filterValue }
                     },
                     ConsistentRead = true,
                     ExclusiveStartKey = lastKeyEvaluated,
@@ -84,7 +83,7 @@ namespace Infrastructure.Persistence
 
                 scanRequestCount++;
             } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
-            
+
             _logger.LogInformation("items: {items}", JsonConvert.SerializeObject(items, Formatting.Indented));
 
             if (items.Count == 0)
@@ -134,7 +133,8 @@ namespace Infrastructure.Persistence
 
             email = email.ToLowerInvariant();
 
-            var participantDetails = await GetParticipantDetailsByFilterAsync("Email", "email", new AttributeValue { S = email });
+            var participantDetails =
+                await ScanForParticipantDetailsWithFilterAsync("Email", new AttributeValue { S = email });
 
             return participantDetails;
         }
@@ -145,8 +145,10 @@ namespace Infrastructure.Persistence
             {
                 return null;
             }
-            var participantDetails = await GetParticipantDetailsByFilterAsync("NhsNumber", "nhsNumber", new AttributeValue { S = nhsNumber });
-            
+
+            var participantDetails =
+                await ScanForParticipantDetailsWithFilterAsync("NhsNumber", new AttributeValue { S = nhsNumber });
+
             _logger.LogInformation("participantDetails: {participantDetails}",
                 JsonConvert.SerializeObject(participantDetails));
 
