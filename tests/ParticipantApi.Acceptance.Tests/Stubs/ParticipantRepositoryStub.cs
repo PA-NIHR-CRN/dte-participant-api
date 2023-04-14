@@ -97,5 +97,25 @@ namespace ParticipantApi.Acceptance.Tests.Stubs
 
             return await Task.FromResult(detail);
         }
+
+        public Task DeleteParticipantDetailsAsync(ParticipantDetails entity)
+        {
+            var list = _participantDetails.ToList();
+            list.Remove(entity);
+
+            _participantDetails = new ConcurrentBag<ParticipantDetails>(list);
+
+            return Task.CompletedTask;
+        }
+
+        public Task CreateAnonymisedDemographicParticipantDataAsync(ParticipantDetails entity)
+        {
+            var list = _participantDetails.ToList();
+            list.Remove(entity);
+
+            _participantDetails = new ConcurrentBag<ParticipantDetails>(list);
+
+            return Task.CompletedTask;
+        }
     }
 }

@@ -21,7 +21,6 @@ namespace Infrastructure.Persistence
         private readonly DynamoDBOperationConfig _config;
 
         private static string ParticipantKey(string participantId) => $"PARTICIPANT#{participantId}";
-
         private static string ParticipantKey() => "PARTICIPANT#";
 
         public ParticipantDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, AwsSettings awsSettings,
@@ -40,101 +39,106 @@ namespace Infrastructure.Persistence
             return await _context.LoadAsync<ParticipantDetails>(ParticipantKey(participantId), ParticipantKey(),
                 _config);
         }
-
         private async Task<ParticipantDetails> ScanForParticipantDetailsWithFilterAsync(
-            string dbCol,
-            AttributeValue filterValue)
+    string dbCol,
+    AttributeValue filterValue)
+{
+    var items = new List<Dictionary<string, AttributeValue>>();
+
+    var scanRequestCount = 1;
+    Dictionary<string, AttributeValue> lastKeyEvaluated = null;
+    do
+    {
+        var request = new ScanRequest
         {
-            var items = new List<Dictionary<string, AttributeValue>>();
-
-            var scanRequestCount = 1;
-            Dictionary<string, AttributeValue> lastKeyEvaluated = null;
-            do
+            TableName = _config.OverrideTableName,
+            FilterExpression = $"#{dbCol} = :{dbCol}",
+            ExpressionAttributeNames = new Dictionary<string, string>
             {
-                var request = new ScanRequest
                 {
-                    TableName = _config.OverrideTableName,
-                    FilterExpression = $"#{dbCol} = :{dbCol}",
-                    ExpressionAttributeNames = new Dictionary<string, string>
-                    {
-                        {
-                            $"#{dbCol}", dbCol
-                        }
-                    },
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                    {
-                        { $":{dbCol}", filterValue }
-                    },
-                    ConsistentRead = true,
-                    ExclusiveStartKey = lastKeyEvaluated,
-                };
+                    $"#{dbCol}", dbCol
+                }
+            },
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { $":{dbCol}", filterValue }
+            },
+            ConsistentRead = true,
+            ExclusiveStartKey = lastKeyEvaluated,
+        };
 
-                _logger.LogInformation("request {scanRequestCount}: {request}", scanRequestCount,
-                    JsonConvert.SerializeObject(request, Formatting.Indented));
+        _logger.LogInformation("request {scanRequestCount}: {request}", scanRequestCount,
+            JsonConvert.SerializeObject(request, Formatting.Indented));
 
-                var response = await _client.ScanAsync(request);
+        var response = await _client.ScanAsync(request);
 
-                _logger.LogInformation("response {scanRequestCount}: {response}", scanRequestCount,
-                    JsonConvert.SerializeObject(response, Formatting.Indented));
+        _logger.LogInformation("response {scanRequestCount}: {response}", scanRequestCount,
+            JsonConvert.SerializeObject(response, Formatting.Indented));
 
-                lastKeyEvaluated = response.LastEvaluatedKey;
+        lastKeyEvaluated = response.LastEvaluatedKey;
 
-                items.AddRange(response.Items);
+        items.AddRange(response.Items);
 
-                scanRequestCount++;
-            } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
+        scanRequestCount++;
+    } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
 
-            _logger.LogInformation("items: {items}", JsonConvert.SerializeObject(items, Formatting.Indented));
+    _logger.LogInformation("items: {items}", JsonConvert.SerializeObject(items, Formatting.Indented));
 
-            if (items.Count == 0)
+    if (items.Count == 0)
+    {
+        return null;
+    }
+
+    var item = items.OrderByDescending(x => DateTime.Parse(x["CreatedAtUtc"].S)).First();
+
+    // make item dictionary to an object
+    var participantDetails = new ParticipantDetails
+    {
+        Pk = item["PK"].S,
+        Sk = item["SK"].S,
+        Email = item["Email"].S,
+        Firstname = item["Firstname"].S,
+        Lastname = item["Lastname"].S,
+        ConsentRegistration = Convert.ToBoolean(Convert.ToInt16(item["ConsentRegistration"].N)),
+        DateOfBirth = DateTime.Parse(item["DateOfBirth"].S),
+    };
+
+    if (item.TryGetValue("NhsId", out var nhsId))
+    {
+        participantDetails.NhsId = nhsId.S;
+    }
+
+    if (item.TryGetValue("NhsNumber", out var nhsNumber))
+    {
+        participantDetails.NhsNumber = nhsNumber.S;
+    }
+
+    if (item.TryGetValue("ParticipantId", out var participantId))
+    {
+        participantDetails.ParticipantId = participantId.S;
+    }
+
+
+    _logger.LogInformation("participantDetails: {participantDetails}",
+        JsonConvert.SerializeObject(participantDetails));
+
+    return participantDetails;
+}
+
+
+        public async Task<ParticipantDetails> GetParticipantDetailsByEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
             {
                 return null;
             }
 
-            var item = items.OrderByDescending(x => DateTime.Parse(x["CreatedAtUtc"].S)).First();
-
-            // make item dictionary to an object
-            var participantDetails = new ParticipantDetails
-            {
-                Pk = item["PK"].S,
-                Sk = item["SK"].S,
-                Email = item["Email"].S,
-                Firstname = item["Firstname"].S,
-                Lastname = item["Lastname"].S,
-                ConsentRegistration = Convert.ToBoolean(Convert.ToInt16(item["ConsentRegistration"].N)),
-                DateOfBirth = DateTime.Parse(item["DateOfBirth"].S),
-            };
-
-            if (item.TryGetValue("NhsId", out var nhsId))
-            {
-                participantDetails.NhsId = nhsId.S;
-            }
-
-            if (item.TryGetValue("NhsNumber", out var nhsNumber))
-            {
-                participantDetails.NhsNumber = nhsNumber.S;
-            }
-
-            if (item.TryGetValue("ParticipantId", out var participantId))
-            {
-                participantDetails.ParticipantId = participantId.S;
-            }
-
-
-            _logger.LogInformation("participantDetails: {participantDetails}",
-                JsonConvert.SerializeObject(participantDetails));
-
-            return participantDetails;
-        }
-
-        public async Task<ParticipantDetails> GetParticipantDetailsByEmailAsync(string email)
-        {
-            if (string.IsNullOrEmpty(email)) return null;
-
             email = email.ToLowerInvariant();
 
-            var participantDetails =
-                await ScanForParticipantDetailsWithFilterAsync("Email", new AttributeValue { S = email });
+            var participantDetails = await ScanForParticipantDetailsWithFilterAsync("Email", new AttributeValue { S = email });
+            
+            _logger.LogInformation("participantDetails: {participantDetails}",
+                JsonConvert.SerializeObject(participantDetails));
 
             return participantDetails;
         }
@@ -145,10 +149,9 @@ namespace Infrastructure.Persistence
             {
                 return null;
             }
-
-            var participantDetails =
-                await ScanForParticipantDetailsWithFilterAsync("NhsNumber", new AttributeValue { S = nhsNumber });
-
+            
+            var participantDetails = await ScanForParticipantDetailsWithFilterAsync("NhsNumber", new AttributeValue { S = nhsNumber });
+            
             _logger.LogInformation("participantDetails: {participantDetails}",
                 JsonConvert.SerializeObject(participantDetails));
 
@@ -194,6 +197,16 @@ namespace Infrastructure.Persistence
         }
 
         public async Task UpdateParticipantDemographicsAsync(ParticipantDemographics entity)
+        {
+            await _context.SaveAsync(entity, _config);
+        }
+
+        public async Task DeleteParticipantDetailsAsync(ParticipantDetails entity)
+        {
+            await _context.DeleteAsync(entity, _config);
+        }
+        
+        public async Task CreateAnonymisedDemographicParticipantDataAsync(ParticipantDetails entity)
         {
             await _context.SaveAsync(entity, _config);
         }
