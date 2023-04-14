@@ -14,7 +14,7 @@ namespace Application.Contracts
         Task CreateParticipantDemographicsAsync(ParticipantDemographics entity);
         Task AddDemographicsToNhsUserAsync(ParticipantDemographics entity, string nhsId);
         Task UpdateParticipantDemographicsAsync(ParticipantDemographics entity);
-        
-
+        Task DeleteParticipantDetailsAsync(ParticipantDetails entity);
+        Task CreateAnonymisedDemographicParticipantDataAsync(ParticipantDetails entity);
     }
 }

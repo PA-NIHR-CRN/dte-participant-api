@@ -9,6 +9,13 @@ namespace Domain.Entities.Participants
         public string Town { get; set; }
         public string Postcode { get; set; }
 
+        private static string GetOutcodeFromPostcode(string postcode)
+        {
+            if (string.IsNullOrWhiteSpace(postcode)) return null;
+            var postcodeWithoutSpace = postcode.Replace(" ", "");
+            return postcodeWithoutSpace[..^3];
+        }
+
         public void Clear()
         {
             AddressLine1 = null;
@@ -16,6 +23,7 @@ namespace Domain.Entities.Participants
             AddressLine3 = null;
             AddressLine4 = null;
             Town = null;
+            Postcode = GetOutcodeFromPostcode(Postcode);
         }
     }
 }
