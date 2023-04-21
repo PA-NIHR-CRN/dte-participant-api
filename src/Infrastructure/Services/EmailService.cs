@@ -13,10 +13,10 @@ namespace Infrastructure.Services
         private readonly EmailSettings _emailSettings;
         private readonly IAmazonSimpleEmailService _client;
 
-        public EmailService(EmailSettings emailSettings)
+        public EmailService(EmailSettings emailSettings, IAmazonSimpleEmailService client)
         {
             _emailSettings = emailSettings;
-            _client = new AmazonSimpleEmailServiceClient(RegionEndpoint.EUWest1);
+            _client = client;
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)

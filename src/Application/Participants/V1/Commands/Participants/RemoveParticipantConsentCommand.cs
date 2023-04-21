@@ -9,6 +9,7 @@ using Domain.Entities.Participants;
 using Dte.Common.Contracts;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Application.Participants.V1.Commands.Participants
 {
@@ -30,13 +31,13 @@ namespace Application.Participants.V1.Commands.Participants
             private readonly ILogger<RemoveParticipantConsentCommand> _logger;
 
             public Handler(IParticipantRepository participantRepository, IClock clock,
-                IAmazonCognitoIdentityProvider provider, AwsSettings awsSettings,
+                IAmazonCognitoIdentityProvider provider, IOptions<AwsSettings> awsSettings,
                 ILogger<RemoveParticipantConsentCommand> logger)
             {
                 _participantRepository = participantRepository;
                 _clock = clock;
                 _provider = provider;
-                _awsSettings = awsSettings;
+                _awsSettings = awsSettings.Value;
                 _logger = logger;
             }
             private static string DeletedKey(Guid primaryKey) => $"DELETED#{primaryKey}";
@@ -89,6 +90,7 @@ namespace Application.Participants.V1.Commands.Participants
                 demographics.Disability = false;
                 demographics.Address?.Clear();
                 demographics.HealthConditionInterests?.Clear();
+                demographics.UpdatedAtUtc = _clock.Now();
 
                 await _participantRepository.UpdateParticipantDemographicsAsync(demographics);
                 

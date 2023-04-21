@@ -4,6 +4,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Application.Contracts;
 using Application.Settings;
 using Domain.Entities.Studies;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Persistence
 {
@@ -18,11 +19,11 @@ namespace Infrastructure.Persistence
         private static string SiteKey(long studyId) => $"STUDY#{studyId}#SITE#";
         private static string PreScreenerQuestionKey(long studyId, string reference, int version) => $"STUDY#{studyId}#PRESCREENERQUESTION#VERSION#{version}#REFERENCE#{reference}";
 
-        public StudyDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, AwsSettings awsSettings) : base(client, context)
+        public StudyDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, IOptions<AwsSettings> awsSettings) : base(client, context)
         {
             _client = client;
             _context = context;
-            _config = new DynamoDBOperationConfig { OverrideTableName = awsSettings.StudyDynamoDbTableName };
+            _config = new DynamoDBOperationConfig { OverrideTableName = awsSettings.Value.StudyDynamoDbTableName };
         }
 
         public async Task<Study> GetStudyAsync(long studyId)

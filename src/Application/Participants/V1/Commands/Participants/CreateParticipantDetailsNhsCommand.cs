@@ -12,6 +12,7 @@ using MediatR;
 using Dte.Common.Exceptions;
 using Dte.Common.Exceptions.Common;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Application.Participants.V1.Commands.Participants
 {
@@ -50,13 +51,13 @@ namespace Application.Participants.V1.Commands.Participants
             private readonly EmailSettings _emailSettings;
 
             public CreateParticipantDetailsNhsCommandHandler(IParticipantRepository participantRepository, IClock clock,
-                IAmazonCognitoIdentityProvider provider, AwsSettings awsSettings, EmailSettings emailSettings,
+                IAmazonCognitoIdentityProvider provider, IOptions<AwsSettings> awsSettings, EmailSettings emailSettings,
                 IEmailService emailService)
             {
                 _participantRepository = participantRepository;
                 _clock = clock;
                 _provider = provider;
-                _awsSettings = awsSettings;
+                _awsSettings = awsSettings.Value;
                 _emailService = emailService;
                 _emailSettings = emailSettings;
             }
