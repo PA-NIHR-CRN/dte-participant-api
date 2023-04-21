@@ -4,6 +4,7 @@ using Amazon;
 using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.SimpleEmail;
 using Application.Contracts;
 using Application.Settings;
 using Dte.Common;
@@ -24,12 +25,15 @@ namespace ParticipantApi.DependencyRegistrations
         {
             // Infrastructure dependencies
             services.AddScoped<IStudyRepository, StudyDynamoDbRepository>();
+            
             services.AddScoped<IParticipantRegistrationRepository, ParticipantRegistrationDynamoDbRepository>();
             services.AddScoped<IParticipantRepository, ParticipantDynamoDbRepository>();
+            services.AddTransient<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>();
             services.AddSingleton<IClock, Clock>();
             services.AddSingleton<IHeaderService, HeaderService>();
+
             services.AddTransient<IEmailService, EmailService>();
-            
+
             // AWS
             var awsSettings = configuration.GetSection(AwsSettings.SectionName).Get<AwsSettings>();
             var amazonDynamoDbConfig = new AmazonDynamoDBConfig();
@@ -50,6 +54,7 @@ namespace ParticipantApi.DependencyRegistrations
             if(!ProdEnvironmentNames.Any(x => string.Equals(x, environmentName, StringComparison.OrdinalIgnoreCase)))
             {
                 // Enable local stubs
+                
             }
             
             return services;

@@ -9,6 +9,7 @@ using Application.Contracts;
 using Application.Settings;
 using Domain.Entities.Participants;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Infrastructure.Persistence
@@ -23,7 +24,7 @@ namespace Infrastructure.Persistence
         private static string ParticipantKey(string participantId) => $"PARTICIPANT#{participantId}";
         private static string ParticipantKey() => "PARTICIPANT#";
 
-        public ParticipantDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, AwsSettings awsSettings,
+        public ParticipantDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, IOptions<AwsSettings> awsSettings,
             ILogger<ParticipantDynamoDbRepository> logger)
             : base(client, context)
         {
@@ -31,7 +32,7 @@ namespace Infrastructure.Persistence
             _context = context;
             this._logger = logger;
             _config = new DynamoDBOperationConfig
-                { OverrideTableName = awsSettings.ParticipantRegistrationDynamoDbTableName };
+                { OverrideTableName = awsSettings.Value.ParticipantRegistrationDynamoDbTableName };
         }
 
         public async Task<ParticipantDetails> GetParticipantDetailsAsync(string participantId)

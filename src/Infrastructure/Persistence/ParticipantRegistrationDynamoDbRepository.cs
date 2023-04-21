@@ -6,6 +6,7 @@ using Amazon.DynamoDBv2.DocumentModel;
 using Application.Contracts;
 using Application.Settings;
 using Domain.Entities.ParticipantRegistrations;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Persistence
 {
@@ -19,11 +20,11 @@ namespace Infrastructure.Persistence
         private static string StudySiteParticipantsKey(long studyId, string siteId) => $"STUDY#{studyId}#SITE#{siteId}#PARTICIPANT#";
         private static string StudySiteParticipantKeys(long studyId, string siteId, string participantId) => $"STUDY#{studyId}#SITE#{siteId}#PARTICIPANT#{participantId}";
 
-        public ParticipantRegistrationDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, AwsSettings awsSettings) : base(client, context)
+        public ParticipantRegistrationDynamoDbRepository(IAmazonDynamoDB client, IDynamoDBContext context, IOptions<AwsSettings> awsSettings) : base(client, context)
         {
             _client = client;
             _context = context;
-            _config = new DynamoDBOperationConfig { OverrideTableName = awsSettings.ParticipantRegistrationDynamoDbTableName };
+            _config = new DynamoDBOperationConfig { OverrideTableName = awsSettings.Value.ParticipantRegistrationDynamoDbTableName };
         }
 
         public async Task<IEnumerable<ParticipantRegistration>> GetParticipantsByStudySiteAsync(long studyId, string siteId)

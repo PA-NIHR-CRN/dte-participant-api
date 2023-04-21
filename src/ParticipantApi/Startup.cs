@@ -41,14 +41,12 @@ namespace ParticipantApi
         public void ConfigureServices(IServiceCollection services)
         {
             // Configuration
-            var awsSettings = Configuration.GetSection(AwsSettings.SectionName).Get<AwsSettings>();
-            if (awsSettings == null) throw new Exception("Could not bind the aws settings, please check configuration");
+            services.AddOptions<AwsSettings>().Bind(Configuration.GetSection(AwsSettings.SectionName));
             var authenticationSettings = Configuration.GetSection(AuthenticationSettings.SectionName).Get<AuthenticationSettings>();
             if (authenticationSettings == null) throw new Exception("Could not bind the authentication settings, please check configuration");
             var emailSettings = Configuration.GetSection(EmailSettings.SectionName).Get<EmailSettings>();
             if (emailSettings == null) throw new Exception("Could not bind the email settings, please check configuration");
 
-            services.AddSingleton(awsSettings);
             services.AddSingleton(authenticationSettings);
             services.AddSingleton(emailSettings);
 
